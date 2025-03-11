@@ -105,36 +105,36 @@ export const createNote = async (note: Partial<Note>): Promise<Note | undefined>
     }
 }
 
-// export const editNote = async (id: string, note: Partial<Note>): Promise<Note | null> => {
-//     try {
-//         const response = await axios.patch<{ note: Note }>(`${API_URL}/notes/${id}`, note);
-
-//         return response.data.note;
-//     } catch (error) {
-//         console.log(error);
-//         return null;
-//     }
-// }
-
 export const editNote = async (id: string, note: Partial<Note>): Promise<Note | null> => {
     try {
-        const cleanedNote = JSON.parse(JSON.stringify(note, (_, value) => (value === undefined ? null : value)));
+        const response = await axios.patch<{ note: Note }>(`${API_URL}/notes/${id}`, note);
 
-        console.log("Final Data Sent to API:", cleanedNote); // Debugging step
-
-        const response = await axios.patch<{ note: Note }>(
-            `${API_URL}/notes/${id}`,
-            cleanedNote,
-            { headers: { 'Content-Type': 'application/json' } }
-        );
-
-        console.log("API Response:", response.data);
         return response.data.note;
     } catch (error) {
-        console.error("Error updating note:", error);
+        console.log(error);
         return null;
     }
-};
+}
+
+// export const editNote = async (id: string, note: Partial<Note>): Promise<Note | null> => {
+//     try {
+//         const cleanedNote = JSON.parse(JSON.stringify(note, (_, value) => (value === undefined ? null : value)));
+
+//         console.log("Final Data Sent to API:", cleanedNote); // Debugging step
+
+//         const response = await axios.patch<{ note: Note }>(
+//             `${API_URL}/notes/${id}`,
+//             cleanedNote,
+//             { headers: { 'Content-Type': 'application/json' } }
+//         );
+
+//         console.log("API Response:", response.data);
+//         return response.data.note;
+//     } catch (error) {
+//         console.error("Error updating note:", error);
+//         return null;
+//     }
+// };
 
 
 export const editFolder = async (id: string, folder: Partial<Folder>): Promise<Folder | null> => {

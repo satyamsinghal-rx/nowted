@@ -1,29 +1,40 @@
-import logoIcon from '../assets/logo.svg'
-import searchIcon from '../assets/search.svg'
-import docIcon from '../assets/Frame.svg'
-import { useAppContext } from '../hooks/useAppContext'
-import fileIcon from '../assets/Frame (1).svg'
-import trash from '../assets/trash.svg'
-import favorite from '../assets/fav.svg'
-import archived from '../assets/arch.svg'
-import folderAddIcon from '../assets/addfolder.svg'
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router'
-import { Note } from '../types'
-import deleteIcon from '../assets/delete.svg'
+import logoIcon from "../assets/logo.svg";
+import searchIcon from "../assets/search.svg";
+import docIcon from "../assets/Frame.svg";
+import { useAppContext } from "../hooks/useAppContext";
+import fileIcon from "../assets/Frame (1).svg";
+import trash from "../assets/trash.svg";
+import favorite from "../assets/fav.svg";
+import archived from "../assets/arch.svg";
+import folderAddIcon from "../assets/addfolder.svg";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { Note } from "../types";
+import deleteIcon from "../assets/delete.svg";
 
 function Sidebar() {
+  const {
+    recents,
+    folders,
+    loading,
+    addFolder,
+    selectedFolder,
+    setSelectedFolder,
+    createNewNote,
+    selectedNote,
+    updateFolder,
+    setSelectedNote,
+    searchQuery,
+    setSearchQuery,
+    notes,
+    removeFolder,
+  } = useAppContext();
 
-  const { recents, folders, loading, addFolder,
-    selectedFolder, setSelectedFolder, createNewNote,
-    selectedNote, updateFolder, setSelectedNote, searchQuery, setSearchQuery, notes, removeFolder } = useAppContext();
-
-  const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderName, setNewFolderName] = useState("");
   const [isAddingFolder, setIsAddingFolder] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [folderName, setFolderName] = useState<string>("");
-
 
   const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -34,7 +45,7 @@ function Sidebar() {
   const handleAddFolder = () => {
     if (newFolderName.trim()) {
       addFolder({ name: newFolderName });
-      setNewFolderName('');
+      setNewFolderName("");
       setIsAddingFolder(false);
     }
   };
@@ -54,15 +65,14 @@ function Sidebar() {
   };
 
   const handleFavClick = () => {
-
     setSelectedFolder(null);
-    navigate('/favorites');
-  }
+    navigate("/favorites");
+  };
 
   const handleTrashClick = () => {
     setSelectedFolder(null);
-    navigate('/trash');
-  }
+    navigate("/trash");
+  };
 
   const handleFolderDoubleClick = (folderId: string, name: string) => {
     setEditingFolderId(folderId);
@@ -87,6 +97,13 @@ function Sidebar() {
   };
 
   useEffect(() => {
+    if (folders.length > 0 && !selectedFolder && location.pathname === "/") {
+      setSelectedFolder(folders[0].id);
+      navigate(`/folder/${folders[0].id}`);
+    }
+  }, [folders, selectedFolder, navigate, location.pathname, setSelectedFolder]);
+
+  useEffect(() => {
     if (searchQuery.trim()) {
       const filtered = notes.filter((note) =>
         note?.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -99,7 +116,11 @@ function Sidebar() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && event.target instanceof Node && !searchRef.current.contains(event.target)) {
+      if (
+        searchRef.current &&
+        event.target instanceof Node &&
+        !searchRef.current.contains(event.target)
+      ) {
         setIsSearching(false);
       }
     };
@@ -115,7 +136,7 @@ function Sidebar() {
           src={searchIcon}
           alt="Search Icon"
           className="px-6 cursor-pointer"
-          onClick={() => setIsSearching(prev => !prev)}
+          onClick={() => setIsSearching((prev) => !prev)}
         />
       </div>
 
@@ -160,32 +181,45 @@ function Sidebar() {
 
       <div className="mt-2">
         <div>
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2" >Recents</p>
+          <p className="font-semibold text-sm text-gray-300 px-6 py-2">
+            Recents
+          </p>
         </div>
-
 
         {loading ? (
           <p className="text-gray-400">Loading...</p>
         ) : (
           <div className="flex flex-col items-start">
             {recents.map((note) => (
-              <div key={note.id} className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
-                ${selectedNote?.id === note.id ? "bg-tertiary hover:bg-tertiary" : ""}`}
+              <div
+                key={note.id}
+                className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+                ${
+                  selectedNote?.id === note.id
+                    ? "bg-tertiary hover:bg-tertiary"
+                    : ""
+                }`}
                 onClick={() => handleNoteClick(note)}
               >
                 <img src={docIcon} className="w-4 h-4 opacity-70" />
-                <span className="text-base font-semibold text-gray-300 truncate px-2">{note.title}</span>
+                <span className="text-base font-semibold text-gray-300 truncate px-2">
+                  {note.title}
+                </span>
               </div>
             ))}
           </div>
         )}
       </div>
 
-
       <div className="mt-4">
-        <div className='flex justify-between'>
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2" >Folders</p>
-          <img src={folderAddIcon} alt='' className='px-6 cursor-pointer'
+        <div className="flex justify-between">
+          <p className="font-semibold text-sm text-gray-300 px-6 py-2">
+            Folders
+          </p>
+          <img
+            src={folderAddIcon}
+            alt=""
+            className="px-6 cursor-pointer"
             onClick={() => setIsAddingFolder(true)}
           />
         </div>
@@ -198,7 +232,7 @@ function Sidebar() {
               placeholder="Folder name..."
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddFolder()}
+              onKeyPress={(e) => e.key === "Enter" && handleAddFolder()}
               autoFocus
             />
           </div>
@@ -209,14 +243,21 @@ function Sidebar() {
         ) : (
           <div className="flex flex-col items-start max-h-44 overflow-y-auto scrollbar-hide">
             {folders.map((folder) => (
-              <div key={folder.id} className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight ${selectedFolder === folder.id ? "bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]" : ""
+              <div
+                key={folder.id}
+                className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight ${
+                  selectedFolder === folder.id
+                    ? "bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]"
+                    : ""
                 }`}
-                onDoubleClick={() => handleFolderDoubleClick(folder.id, folder.name)}
+                onDoubleClick={() =>
+                  handleFolderDoubleClick(folder.id, folder.name)
+                }
                 onClick={() => {
-                  setSelectedFolder(folder.id)
+                  setSelectedFolder(folder.id);
                   navigate(`/folder/${folder.id}`);
-
-                }} >
+                }}
+              >
                 <img src={fileIcon} className="w-4 h-4 opacity-70" />
                 {editingFolderId === folder.id ? (
                   <input
@@ -229,51 +270,75 @@ function Sidebar() {
                     className="bg-transparent text-white border border-gray-500 rounded px-2 py-1 w-full"
                   />
                 ) : (
-                  <div className='flex justify-between items-center gap-20 w-full'>
+                  <div className="flex justify-between items-center gap-20 w-full">
                     <span className="text-base font-semibold text-gray-300 truncate px-2">
                       {folder.name}
                     </span>
-                    <img src={deleteIcon} alt='' className='w-4 h-4 cursor-pointer'
-                      onClick={() => removeFolder(selectedFolder!)} />
+                    <img
+                      src={deleteIcon}
+                      alt=""
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={() => removeFolder(selectedFolder!)}
+                    />
                   </div>
-
                 )}
               </div>
             ))}
           </div>
         )}
-
       </div>
 
       <div className="mt-4">
         <div>
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2" >More</p>
+          <p className="font-semibold text-sm text-gray-300 px-6 py-2">More</p>
         </div>
 
         <div className="flex flex-col items-start">
-          <div className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
-                    ${location.pathname === '/favorites' ? "bg-blackLight hover:bg-blackLight" : ""}`}
-            onClick={handleFavClick}>
+          <div
+            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+                    ${
+                      location.pathname.includes("/favorites")
+                        ? "bg-blackLight hover:bg-blackLight"
+                        : ""
+                    }`}
+            onClick={handleFavClick}
+          >
             <img src={favorite} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">Favorites</span>
+            <span className="text-base font-semibold text-gray-300 truncate px-2">
+              Favorites
+            </span>
           </div>
 
-          <div className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
-                    ${location.pathname === '/trash' ? "bg-blackLight hover:bg-blackLight" : ""}`}
-            onClick={handleTrashClick}>
+          <div
+            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+                    ${
+                      location.pathname.includes("/trash")
+                        ? "bg-blackLight hover:bg-blackLight"
+                        : ""
+                    }`}
+            onClick={handleTrashClick}
+          >
             <img src={trash} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">Trash</span>
+            <span className="text-base font-semibold text-gray-300 truncate px-2">
+              Trash
+            </span>
           </div>
 
-          <div className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
-                    ${location.pathname === '/archived' ? "bg-blackLight hover:bg-blackLight" : ""}`}
-            onClick={() => navigate('/archived')}
+          <div
+            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+                    ${
+                      location.pathname.includes("/archived")
+                        ? "bg-blackLight hover:bg-blackLight"
+                        : ""
+                    }`}
+            onClick={() => navigate("/archived")}
           >
             <img src={archived} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">Archived Notes</span>
+            <span className="text-base font-semibold text-gray-300 truncate px-2">
+              Archived Notes
+            </span>
           </div>
         </div>
-
       </div>
     </div>
   );
