@@ -1,17 +1,18 @@
-import { AxiosError, AxiosResponse } from "axios";
+import { AxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
+import { Note, Folder } from "../types";
 
-interface useApiState<T> {
-  data: T | null;
+interface useApiState {
+  data: Note[] | Folder[] | null;
   loading: boolean;
   error: string | null;
 }
 
-export function useApi<T>(
-  apiFunction: () => Promise<AxiosResponse>,
+export function useApi(
+  apiFunction: () => Promise<Note[] | Folder[]>,
   // dependencies = []
 ) {
-  const [state, setState] = useState<useApiState<T>>({
+  const [state, setState] = useState<useApiState>({
     data: null,
     loading: true,
     error: null,
@@ -22,7 +23,7 @@ export function useApi<T>(
     try {
       const response = await apiFunction();
       setState({
-        data: response,
+        data: response,   
         loading: false,
         error: null,
       });
@@ -49,29 +50,29 @@ export function useApi<T>(
 
 
 
-export function useChangeApi<T, P>(
-    changeApiFunction : (params : P) => Promise<AxiosResponse<T>>    
-){
-    const [state, setState] = useState<useApiState<T>>({
-        data : null,
-        loading : false,
-        error : null,
-    });
+// export function useChangeApi<T, P>(
+//     changeApiFunction : (params : P) => Promise<AxiosResponse<T>>    
+// ){
+//     const [state, setState] = useState<useApiState>({
+//         data : null,
+//         loading : false,
+//         error : null,
+//     });
 
-    const changeData = async (params : P) => {
-        setState(prev => ({...prev, loading : true, error : null}));
-        try{
-            const response = changeApiFunction(params);
-            setState({
-                data : response,
-                loading : false,
-                error : null,
-            })
-        } catch(error){
-            const AxiosError = error as AxiosError;
-            setState(prev => ({...prev, loading : false, error : AxiosError.message}))
-            throw error;
-        }
-    }
-    return {...state, changeData};
-}
+//     const changeData = async (params : P) => {
+//         setState(prev => ({...prev, loading : true, error : null}));
+//         try{
+//             const response = await changeApiFunction(params);
+//             setState({
+//                 data : response,
+//                 loading : false,
+//                 error : null,
+//             })
+//         } catch(error){
+//             const AxiosError = error as AxiosError;
+//             setState(prev => ({...prev, loading : false, error : AxiosError.message}))
+//             throw error;
+//         }
+//     }
+//     return {...state, changeData};
+// }

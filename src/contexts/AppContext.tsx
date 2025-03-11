@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Note, Folder } from "../types";
 import {
     createFolder, deleteFolder, deleteNote, editFolder, getFolders, getNotes, getRecents,
@@ -7,39 +7,15 @@ import {
 } from "../apis/api";
 import { useApi } from "../hooks/useApi";
 import { createNote } from "../apis/api";
+import { AppContextType } from "../types"
 
-interface AppContextType {
-    notes: Note[];
-    folders: Folder[];
-    recents: Note[];
-    loading: boolean;
-    error: string | null;
-    selectedNote: Note | null;
-    selectedFolder: string | undefined;
-    searchQuery: string;
-    archived: Note[];
-    deleted: Note[];
-    setSearchQuery: (query: string) => void;
-    setSelectedNote: (note: Note | null) => void;
-    setSelectedFolder: (folderId: string | null) => void;
-    addNote: (note: Partial<Note>) => Promise<Note | undefined>;
-    updateNote: (id: string, note: Partial<Note>) => Promise<Note | undefined>;
-    removeNote: (id: string) => Promise<void>;
-    addFolder: (folder: Partial<Folder>) => Promise<Folder | undefined>;
-    updateFolder: (id: string, folder: Partial<Folder>) => Promise<Folder | undefined>;
-    removeFolder: (id: string) => Promise<void>;
-    refetchData: () => void;
-    createNewNote: (folderId?: string) => Promise<Note | undefined>;
-    fetchNoteById: (id: string) => Promise<Note | null>;
-    toggleArchive: (note: Note) => Promise<void>;
-    restoreNote: (id: string) => void;
-}
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-    const [selectedFolder, setSelectedFolder] = useState<string | undefined>(undefined);
+    const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     const { data: notesData, loading: notesLoading, error: notesError, refetch: refetchNotes } = useApi(getNotes);
@@ -51,21 +27,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     const loading = notesLoading || foldersLoading || recentsLoading;
     const error = notesError || foldersError || recentsError;
-    const notes = notesData || [];
-    const folders = foldersData || [];
-    const recents = recentsData || [];
-    const archived = archivedData || [];
-    const deleted = deletedData || [];
-    const favorites = favoritesData || [];
+    // const notes = notesData || [];
+    // const folders = foldersData || [];
+    // const recents = recentsData || [];
+    // const archived = archivedData || [];
+    // const deleted = deletedData || [];
+    // const favorites = favoritesData || [];
 
+    const notes: Note[] = Array.isArray(notesData) ? notesData as Note[] : [];
+    const folders: Folder[] = Array.isArray(foldersData) ? foldersData as Folder[] : [];
+    const recents: Note[] = Array.isArray(recentsData) ? recentsData as Note[] : [];
+    const archived: Note[] = Array.isArray(archivedData) ? archivedData as Note[] : [];
+    const deleted: Note[] = Array.isArray(deletedData) ? deletedData as Note[] : [];
+    const favorites: Note[] = Array.isArray(favoritesData) ? favoritesData as Note[] : [];
+
+
+    // useEffect(() => {
+    //     if (selectedNote && !notes.find(note => note.id === selectedNote.id)) {
+    //         getNoteById(selectedNote.id).then((note) => {
+    //             if (!note) setSelectedNote(null);
+    //         })
+    //     }
+    // }, [notes, selectedNote]);
 
     useEffect(() => {
-        if (selectedNote && !notes.find(note => note.id === selectedNote.id)) {
+        if (selectedNote) {
             getNoteById(selectedNote.id).then((note) => {
                 if (!note) setSelectedNote(null);
             })
         }
-    }, [notes, selectedNote]);
+    }, [selectedNote]);
 
     const refetchData = () => {
         refetchNotes();
@@ -94,7 +85,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         try {
             const folder = await getFolderById(id);
             if (folder) {
-                setSelectedFolder(folder);
+                setSelectedFolder(folder.id);   //it was folder at first // edited -------------------------------
                 return folder;
             }
             return null;
@@ -177,7 +168,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             await deleteFolder(id);
             refetchData();
             if (selectedFolder === id) {
-                setSelectedFolder(undefined);
+                setSelectedFolder(null);
             }
         } catch (error) {
             console.log(error);
@@ -252,10 +243,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-export const useAppContext = (): AppContextType => {
-    const context = useContext(AppContext);
-    if (context === undefined) {
-        throw new Error('useAppContext must be used within an AppProvider');
-    }
-    return context;
-};
+// export const useAppContext = (): AppContextType => {
+//     const context = useContext(AppContext);
+//     if (context === undefined) {
+//         throw new Error('useAppContext must be used within an AppProvider');
+//     }
+//     return context;
+// };

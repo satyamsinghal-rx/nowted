@@ -1,7 +1,7 @@
-import logo from '../assets/logo.svg'
+import logoIcon from '../assets/logo.svg'
 import searchIcon from '../assets/search.svg'
 import docIcon from '../assets/Frame.svg'
-import { useAppContext } from '../contexts/AppContext'
+import { useAppContext } from '../hooks/useAppContext'
 import fileIcon from '../assets/Frame (1).svg'
 import trash from '../assets/trash.svg'
 import favorite from '../assets/fav.svg'
@@ -42,7 +42,7 @@ function Sidebar() {
   const handleNewNote = async () => {
     console.log(selectedFolder);
 
-    const newNote = await createNewNote(selectedFolder);
+    const newNote = await createNewNote(selectedFolder!);
     if (newNote) {
       navigate(`/new-note`);
     }
@@ -110,7 +110,7 @@ function Sidebar() {
   return (
     <div className="w-80 h-screen py-5">
       <div className="flex justify-between">
-        <img src={logo} alt="Logo" className="px-6" />
+        <img src={logoIcon} alt="Logo" className="px-6" />
         <img
           src={searchIcon}
           alt="Search Icon"
@@ -185,7 +185,7 @@ function Sidebar() {
       <div className="mt-4">
         <div className='flex justify-between'>
           <p className="font-semibold text-sm text-gray-300 px-6 py-2" >Folders</p>
-          <img src={folderAddIcon} className='px-6 cursor-pointer'
+          <img src={folderAddIcon} alt='' className='px-6 cursor-pointer'
             onClick={() => setIsAddingFolder(true)}
           />
         </div>
@@ -233,7 +233,7 @@ function Sidebar() {
                     <span className="text-base font-semibold text-gray-300 truncate px-2">
                       {folder.name}
                     </span>
-                    <img src={deleteIcon} className='w-4 h-4 cursor-pointer'
+                    <img src={deleteIcon} alt='' className='w-4 h-4 cursor-pointer'
                       onClick={() => removeFolder(selectedFolder!)} />
                   </div>
 

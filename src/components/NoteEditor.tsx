@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react'
-import { useAppContext } from '../contexts/AppContext';
+import { useAppContext } from '../hooks/useAppContext';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { useState } from 'react';
 import calendarIcon from '../assets/calendar.svg'

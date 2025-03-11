@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAppContext } from '../contexts/AppContext'
+import { useAppContext } from '../hooks/useAppContext'
 import { Note } from '../types';
 import { useLocation, useNavigate } from 'react-router';
 

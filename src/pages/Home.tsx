@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import NotesList from '../components/NotesList'
-import { useAppContext } from '../contexts/AppContext'
+import { useAppContext } from '../hooks/useAppContext'
 import { useParams } from 'react-router';
 import NoteEditor from '../components/NoteEditor';
 
