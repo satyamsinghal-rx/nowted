@@ -76,7 +76,7 @@ function Home() {
     return (
       <div className="flex flex-1 h-full">
         <div className="w-80 h-screen overflow-hidden">
-          <NotesList title={getTitle()} notes={getFilteredNotes()} />
+          <NotesList title={getTitle()} initialNotes={getFilteredNotes()} />
         </div>
         <NoteEditor />
       </div>
@@ -86,7 +86,7 @@ function Home() {
   return (
     <div className="flex flex-1 h-full">
       <div className="w-80 h-screen overflow-hidden">
-        <NotesList title={getTitle()} notes={getFilteredNotes()} />
+        <NotesList title={getTitle()} initialNotes={getFilteredNotes()} />
       </div>
       <NoteEditor />
     </div>

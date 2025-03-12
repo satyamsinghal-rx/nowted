@@ -1,17 +1,65 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAppContext } from "../hooks/useAppContext";
 import { Note } from "../types";
 import { useLocation, useNavigate } from "react-router";
+import { getNotes } from "../apis/api";
 
 interface NotesListProps {
   title: string;
-  notes: Note[];
+  initialNotes: Note[]; // notes the yahan sirf
 }
 
-const NotesList: React.FC<NotesListProps> = ({ title, notes }) => {
-  const { setSelectedNote, selectedNote } = useAppContext();
+const NotesList: React.FC<NotesListProps> = ({ title, initialNotes }) => {
+  // notes tha initialnotes ki jgah
+  const { setSelectedNote, selectedNote, selectedFolder } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
+  // const folderId =
+
+  const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 10;
+
+  const loadMoreNotes = async () => {
+    if (!hasMore || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const nextPage = page + 1;
+
+      const isTrashView = location.pathname.includes("/trash");
+      const isArchivedView = location.pathname.includes("/archived");
+      const isFavoriteView = location.pathname.includes("/favorites");
+
+      const newNotes = await getNotes(
+        nextPage,
+        limit,
+        selectedFolder!,
+        isTrashView ? true : undefined,
+        isArchivedView ? true : undefined,
+        isFavoriteView ? true : undefined
+      );
+
+      if (newNotes.length === 0) {
+        setHasMore(false);
+      } else {
+        setNotes((prevNotes) => [...prevNotes, ...newNotes]);
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error("Error loading more notes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setNotes(initialNotes);
+    setPage(1);
+    setHasMore(true);
+  }, [initialNotes]);
 
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note);
@@ -52,11 +100,9 @@ const NotesList: React.FC<NotesListProps> = ({ title, notes }) => {
             <div
               key={note.id}
               className={`p-4 w-full rounded h-auto bg-[#FFFFFF08] cursor-pointer hover:bg-[#FFFFFF1A] 
-                                ${
-                                  selectedNote?.id === note.id
-                                    ? "bg-[#FFFFFF1A]"
-                                    : ""
-                                }`}
+                        ${
+                          selectedNote?.id === note.id ? "bg-[#FFFFFF1A]" : ""
+                        }`}
               onClick={() => handleNoteClick(note)}
             >
               <h3 className="font-medium text-lg">
@@ -66,13 +112,23 @@ const NotesList: React.FC<NotesListProps> = ({ title, notes }) => {
                 <div className="text-sm text-gray-400">
                   {new Date(note.updatedAt).toLocaleDateString("en-GB")}
                 </div>
-
                 <p className="text-gray-300 text-sm">
                   {truncateContent(String(note.preview || ""))}
                 </p>
               </div>
             </div>
           ))}
+          {hasMore && notes.length >= limit && (
+            <div className="py-6 flex justify-center">
+              <button
+                onClick={loadMoreNotes}
+                disabled={isLoading}
+                className="w-32 py-1 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-500"
+              >
+                {isLoading ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

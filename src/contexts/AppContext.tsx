@@ -26,9 +26,9 @@ import { useApi } from "../hooks/useApi";
 import { createNote } from "../apis/api";
 import { AppContextType } from "../types";
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -283,6 +283,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 };
+
+export { AppContext, AppProvider };
 
 // export const useAppContext = (): AppContextType => {
 //     const context = useContext(AppContext);

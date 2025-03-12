@@ -98,7 +98,7 @@ function NoteEditor() {
 
     setSelectedNote({ ...selectedNote, folderId });
     await updateNote(selectedNote.id, { folderId });
-    navigate(`/folder/${folderId}`);
+    navigate(`/folder/${folderId}/note/${selectedNote.id}`);
 
     setFolderDropdownOpen(false);
   };
