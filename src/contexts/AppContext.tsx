@@ -58,19 +58,29 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const loading = notesLoading || foldersLoading || recentsLoading;
   const error = notesError || foldersError || recentsError;
-  const notes = notesData || [];
-  const folders = foldersData || [];
-  const recents = recentsData || [];
-  const archived = archivedData || [];
-  const deleted = deletedData || [];
-  const favorites = favoritesData || [];
+  // const notes = notesData || [];
+  // const folders = foldersData || [];
+  // const recents = recentsData || [];
+  // const archived = archivedData || [];
+  // const deleted = deletedData || [];
+  // const favorites = favoritesData || [];
 
-  // const notes: Note[] = Array.isArray(notesData) ? notesData as Note[] : [];
-  // const folders: Folder[] = Array.isArray(foldersData) ? foldersData as Folder[] : [];
-  // const recents: Note[] = Array.isArray(recentsData) ? recentsData as Note[] : [];
-  // const archived: Note[] = Array.isArray(archivedData) ? archivedData as Note[] : [];
-  // const deleted: Note[] = Array.isArray(deletedData) ? deletedData as Note[] : [];
-  // const favorites: Note[] = Array.isArray(favoritesData) ? favoritesData as Note[] : [];
+  const notes: Note[] = Array.isArray(notesData) ? (notesData as Note[]) : [];
+  const folders: Folder[] = Array.isArray(foldersData)
+    ? (foldersData as Folder[])
+    : [];
+  const recents: Note[] = Array.isArray(recentsData)
+    ? (recentsData as Note[])
+    : [];
+  const archived: Note[] = Array.isArray(archivedData)
+    ? (archivedData as Note[])
+    : [];
+  const deleted: Note[] = Array.isArray(deletedData)
+    ? (deletedData as Note[])
+    : [];
+  const favorites: Note[] = Array.isArray(favoritesData)
+    ? (favoritesData as Note[])
+    : [];
 
   // useEffect(() => {
   //     if (selectedNote && !notes.find(note => note.id === selectedNote.id)) {
@@ -250,7 +260,7 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
     [refetchNotes, setSelectedNote]
   );
 
-  const contextValue = {
+  const contextValue: AppContextType = {
     notes,
     folders,
     recents,

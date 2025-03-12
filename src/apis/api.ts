@@ -5,7 +5,7 @@ const API_URL = "https://nowted-server.remotestate.com";
 
 export const getNotes = async (
   page: number = 1,
-  limit: number = 100,
+  limit: number = 10,
   folderId?: string,
   deleted?: boolean,
   archived?: boolean,
