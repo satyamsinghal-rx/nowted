@@ -29,6 +29,7 @@ export interface ApiResponse<T> {
 
 export interface AppContextType {
   notes: Note[];
+  notesByFolder: Note[];
   folders: Folder[];
   recents: Note[];
   archived: Note[];
@@ -49,9 +50,11 @@ export interface AppContextType {
   updateFolder: (id: string, folder: Partial<Folder>) => Promise<Folder | null>;
   removeFolder: (id: string) => Promise<void>;
   refetchData: () => void;
+  refetchFavorites: () => void;
+  refetchArchived: () => void;
+  refetchDeleted: () => void;
   createNewNote: (folderId?: string) => Promise<Note | undefined>;
   fetchNoteById: (id: string) => Promise<Note | null>;
   fetchFolderById: (id: string) => Promise<Folder | null>;
-  toggleArchive: (note: Note) => Promise<void>;
   restoreNote: (id: string) => Promise<void>;
 }

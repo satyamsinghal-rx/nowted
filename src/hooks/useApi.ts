@@ -8,10 +8,7 @@ interface useApiState {
   error: string | null;
 }
 
-export function useApi(
-  apiFunction: () => Promise<Note[] | Folder[]>,
-  // dependencies = []
-) {
+export function useApi(apiFunction: () => Promise<Note[] | Folder[]>) {
   const [state, setState] = useState<useApiState>({
     data: null,
     loading: true,
@@ -23,7 +20,7 @@ export function useApi(
     try {
       const response = await apiFunction();
       setState({
-        data: response,   
+        data: response,
         loading: false,
         error: null,
       });
@@ -43,36 +40,7 @@ export function useApi(
 
   const refetch = useCallback(() => {
     fetchData();
-  }, [fetchData])
+  }, [fetchData]);
 
-  return {...state, refetch}; 
+  return { ...state, refetch };
 }
-
-
-
-// export function useChangeApi<T, P>(
-//     changeApiFunction : (params : P) => Promise<AxiosResponse<T>>    
-// ){
-//     const [state, setState] = useState<useApiState>({
-//         data : null,
-//         loading : false,
-//         error : null,
-//     });
-
-//     const changeData = async (params : P) => {
-//         setState(prev => ({...prev, loading : true, error : null}));
-//         try{
-//             const response = await changeApiFunction(params);
-//             setState({
-//                 data : response,
-//                 loading : false,
-//                 error : null,
-//             })
-//         } catch(error){
-//             const AxiosError = error as AxiosError;
-//             setState(prev => ({...prev, loading : false, error : AxiosError.message}))
-//             throw error;
-//         }
-//     }
-//     return {...state, changeData};
-// }

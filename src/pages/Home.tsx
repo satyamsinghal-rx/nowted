@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import NotesList from "../components/NotesList";
 import { useAppContext } from "../hooks/useAppContext";
 import { useParams } from "react-router";
@@ -7,11 +7,13 @@ import NoteEditor from "../components/NoteEditor";
 function Home() {
   const {
     notes,
+    notesByFolder,
     setSelectedNote,
     setSelectedFolder,
     archived,
     deleted,
     folders,
+    favorites,
   } = useAppContext();
   const { folderId, noteId, view } = useParams();
 
@@ -27,11 +29,11 @@ function Home() {
     }
   }, [folderId, noteId, notes, setSelectedFolder, setSelectedNote]);
 
-  const getFilteredNotes = () => {
+  const getFilteredNotes = useCallback(() => {
     let filteredNotes = notes;
 
     if (view === "favorites") {
-      filteredNotes = notes.filter(
+      filteredNotes = favorites.filter(
         (note) => note.isFavorite && !note.isDeleted
       );
     } else if (view === "trash") {
@@ -41,22 +43,28 @@ function Home() {
         (note) => note.isArchived && note.deletedAt === null
       );
     } else if (folderId) {
-      filteredNotes = notes.filter((note) => note.folderId === folderId);
+      filteredNotes = notesByFolder;
     } else {
       filteredNotes = notes.filter(
         (note) =>
           note.folderId === folders[0].id && !note.isArchived && !note.isDeleted
       );
     }
-    // if (searchQuery) {
-    //   const query = searchQuery.toLowerCase();
-    //   filteredNotes = filteredNotes.filter(note => note?.title?.toLowerCase().includes(query));
-    // }
-
     return filteredNotes;
-  };
+  }, [
+    view,
+    notes,
+    deleted,
+    archived,
+    folderId,
+    notesByFolder,
+    folders,
+    favorites,
+  ]);
 
-  const getTitle = (): string => {
+  const filteredNotes = useMemo(() => getFilteredNotes(), [getFilteredNotes]);
+
+  const getTitle = useCallback((): string => {
     if (view === "favorites") return "Favorites";
     if (view === "archived") return "Archived";
     if (view === "trash") return "Trash";
@@ -70,13 +78,15 @@ function Home() {
       return folders[0].name;
     }
     return "No Folder";
-  };
+  }, [view, folderId, folders]);
+
+  const title = useMemo(() => getTitle(), [getTitle]);
 
   if (view === "new-note") {
     return (
       <div className="flex flex-1 h-full">
         <div className="w-80 h-screen overflow-hidden">
-          <NotesList title={getTitle()} initialNotes={getFilteredNotes()} />
+          <NotesList title={title} initialNotes={filteredNotes} />
         </div>
         <NoteEditor />
       </div>
@@ -86,7 +96,7 @@ function Home() {
   return (
     <div className="flex flex-1 h-full">
       <div className="w-80 h-screen overflow-hidden">
-        <NotesList title={getTitle()} initialNotes={getFilteredNotes()} />
+        <NotesList title={title} initialNotes={filteredNotes} />
       </div>
       <NoteEditor />
     </div>

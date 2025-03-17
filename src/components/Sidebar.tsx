@@ -11,6 +11,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { Note } from "../types";
 import deleteIcon from "../assets/delete.svg";
+import openFolderIcon from "../assets/openFolder.svg";
 
 function Sidebar() {
   const {
@@ -28,6 +29,7 @@ function Sidebar() {
     setSearchQuery,
     notes,
     removeFolder,
+    refetchData,
   } = useAppContext();
 
   const [newFolderName, setNewFolderName] = useState("");
@@ -51,8 +53,6 @@ function Sidebar() {
   };
 
   const handleNewNote = async () => {
-    console.log(selectedFolder);
-
     const newNote = await createNewNote(selectedFolder!);
     if (newNote) {
       navigate(`/new-note`);
@@ -62,16 +62,6 @@ function Sidebar() {
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note);
     navigate(`/folder/${note.folderId}/note/${note.id}`);
-  };
-
-  const handleFavClick = () => {
-    setSelectedFolder(null);
-    navigate("/favorites");
-  };
-
-  const handleTrashClick = () => {
-    setSelectedFolder(null);
-    navigate("/trash");
   };
 
   const handleFolderDoubleClick = (folderId: string, name: string) => {
@@ -101,20 +91,17 @@ function Sidebar() {
       setSelectedFolder(folders[0].id);
       navigate(`/folder/${folders[0].id}`);
     }
-  }, [folders, selectedFolder, navigate, location.pathname, setSelectedFolder]);
 
-  useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = notes.filter((note) =>
-        note?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      setFilteredNotes(
+        notes.filter((note) =>
+          note?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       );
-      setFilteredNotes(filtered);
     } else {
       setFilteredNotes([]);
     }
-  }, [searchQuery, notes]);
 
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchRef.current &&
@@ -126,10 +113,18 @@ function Sidebar() {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [
+    folders,
+    selectedFolder,
+    location.pathname,
+    setSelectedFolder,
+    searchQuery,
+    notes,
+    navigate,
+  ]);
 
   return (
-    <div className="w-80 h-screen py-5">
+    <div className="w-80 h-screen py-5 flex flex-col">
       <div className="flex justify-between">
         <img src={logoIcon} alt="Logo" className="px-6" />
         <img
@@ -179,164 +174,180 @@ function Sidebar() {
         )}
       </div>
 
-      <div className="mt-2">
-        <div>
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2">
-            Recents
-          </p>
-        </div>
+      <div className="flex flex-col overflow-hidden">
+        <div className="mt-2">
+          <div>
+            <p className="font-semibold text-sm text-gray-300 px-6 py-2">
+              Recents
+            </p>
+          </div>
 
-        {loading ? (
-          <p className="text-gray-400">Loading...</p>
-        ) : (
-          <div className="flex flex-col items-start">
-            {recents.map((note) => (
-              <div
-                key={note.id}
-                className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+          {loading ? (
+            <p className="text-gray-400">Loading...</p>
+          ) : (
+            <div className="flex flex-col items-start">
+              {recents.map((note) => (
+                <div
+                  key={note.id}
+                  className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
                 ${
                   selectedNote?.id === note.id
                     ? "bg-tertiary hover:bg-tertiary"
                     : ""
                 }`}
-                onClick={() => handleNoteClick(note)}
-              >
-                <img src={docIcon} className="w-4 h-4 opacity-70" />
-                <span className="text-base font-semibold text-gray-300 truncate px-2">
-                  {note.title}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <div className="flex justify-between">
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2">
-            Folders
-          </p>
-          <img
-            src={folderAddIcon}
-            alt=""
-            className="px-6 cursor-pointer"
-            onClick={() => setIsAddingFolder(true)}
-          />
+                  onClick={() => handleNoteClick(note)}
+                >
+                  <img src={docIcon} className="w-4 h-4 opacity-70" />
+                  <span className="text-base font-semibold text-gray-300 truncate px-2">
+                    {note.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {isAddingFolder && (
-          <div className="px-6 py-2">
-            <input
-              type="text"
-              className="w-full px-2 py-1 text-white bg-gray-900 rounded"
-              placeholder="Folder name..."
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleAddFolder()}
-              autoFocus
-            />
+        <div className="mt-4 flex-grow overflow-y-auto scrollbar-hide">
+          <div className="sticky top-0 bg-primary py-2 z-10">
+            <div className="flex justify-between">
+              <p className="font-semibold text-sm text-gray-300 px-6">
+                Folders
+              </p>
+              <img
+                src={folderAddIcon}
+                alt=""
+                className="px-6 cursor-pointer"
+                onClick={() => setIsAddingFolder(true)}
+              />
+            </div>
           </div>
-        )}
 
-        {loading ? (
-          <p className="text-gray-400">Loading...</p>
-        ) : (
-          <div className="flex flex-col items-start max-h-44 overflow-y-auto scrollbar-hide">
-            {folders.map((folder) => (
-              <div
-                key={folder.id}
-                className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight ${
-                  selectedFolder === folder.id
-                    ? "bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]"
-                    : ""
-                }`}
-                onDoubleClick={() =>
-                  handleFolderDoubleClick(folder.id, folder.name)
-                }
-                onClick={() => {
-                  setSelectedFolder(folder.id);
-                  navigate(`/folder/${folder.id}`);
-                }}
-              >
-                <img src={fileIcon} className="w-4 h-4 opacity-70" />
-                {editingFolderId === folder.id ? (
-                  <input
-                    type="text"
-                    value={folderName}
-                    onChange={handleFolderNameChange}
-                    onBlur={handleFolderRename}
-                    onKeyDown={handleKeyPress}
-                    autoFocus
-                    className="bg-transparent text-white border border-gray-500 rounded px-2 py-1 w-full"
+          {isAddingFolder && (
+            <div className="px-6 py-2">
+              <input
+                type="text"
+                className="w-full px-2 py-1 text-white bg-gray-900 rounded"
+                placeholder="Folder name..."
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleAddFolder()}
+                autoFocus
+              />
+            </div>
+          )}
+
+          {loading ? (
+            <p className="text-gray-400">Loading...</p>
+          ) : (
+            <div className="flex flex-col items-start overflow-y-auto scrollbar-hide">
+              {folders.map((folder) => (
+                <div
+                  key={folder.id}
+                  className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight ${
+                    selectedFolder === folder.id
+                      ? "bg-[#FFFFFF1A] hover:bg-[#FFFFFF1A]"
+                      : ""
+                  }`}
+                  onDoubleClick={() =>
+                    handleFolderDoubleClick(folder.id, folder.name)
+                  }
+                  onClick={() => {
+                    setSelectedFolder(folder.id);
+                    navigate(`/folder/${folder.id}`);
+                  }}
+                >
+                  <img
+                    src={
+                      selectedFolder === folder.id ? openFolderIcon : fileIcon
+                    }
+                    className="w-4 h-4 opacity-70"
                   />
-                ) : (
-                  <div className="flex justify-between items-center gap-20 w-full">
-                    <span className="text-base font-semibold text-gray-300 truncate px-2">
-                      {folder.name}
-                    </span>
-                    <img
-                      src={deleteIcon}
-                      alt=""
-                      className="w-4 h-4 cursor-pointer"
-                      onClick={() => removeFolder(selectedFolder!)}
+                  {editingFolderId === folder.id ? (
+                    <input
+                      type="text"
+                      value={folderName}
+                      onChange={handleFolderNameChange}
+                      onBlur={handleFolderRename}
+                      onKeyDown={handleKeyPress}
+                      autoFocus
+                      className="bg-transparent text-white border border-gray-500 rounded px-2 py-1 w-full"
                     />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <div>
-          <p className="font-semibold text-sm text-gray-300 px-6 py-2">More</p>
+                  ) : (
+                    <div className="flex justify-between items-center gap-20 w-full">
+                      <span className="text-base font-semibold text-gray-300 truncate px-2">
+                        {folder.name}
+                      </span>
+                      <img
+                        src={deleteIcon}
+                        alt=""
+                        className="w-4 h-4 cursor-pointer"
+                        onClick={() => removeFolder(selectedFolder!)}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-col items-start">
-          <div
-            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+        <div className="mt-4">
+          <div>
+            <p className="font-semibold text-sm text-gray-300 px-6 py-2">
+              More
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start">
+            <div
+              className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
                     ${
                       location.pathname.includes("/favorites")
                         ? "bg-blackLight hover:bg-blackLight"
                         : ""
                     }`}
-            onClick={handleFavClick}
-          >
-            <img src={favorite} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">
-              Favorites
-            </span>
-          </div>
+              onClick={() => {
+                navigate("/favorites");
+                refetchData();
+              }}
+            >
+              <img src={favorite} className="w-5 h-5 opacity-70" />
+              <span className="text-base font-semibold text-gray-300 truncate px-2">
+                Favorites
+              </span>
+            </div>
 
-          <div
-            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+            <div
+              className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
                     ${
                       location.pathname.includes("/trash")
                         ? "bg-blackLight hover:bg-blackLight"
                         : ""
                     }`}
-            onClick={handleTrashClick}
-          >
-            <img src={trash} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">
-              Trash
-            </span>
-          </div>
+              onClick={() => navigate("/trash")}
+            >
+              <img src={trash} className="w-5 h-5 opacity-70" />
+              <span className="text-base font-semibold text-gray-300 truncate px-2">
+                Trash
+              </span>
+            </div>
 
-          <div
-            className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
+            <div
+              className={`flex items-center w-full px-6 py-1.5 cursor-pointer hover:bg-blackLight
                     ${
                       location.pathname.includes("/archived")
                         ? "bg-blackLight hover:bg-blackLight"
                         : ""
                     }`}
-            onClick={() => navigate("/archived")}
-          >
-            <img src={archived} className="w-5 h-5 opacity-70" />
-            <span className="text-base font-semibold text-gray-300 truncate px-2">
-              Archived Notes
-            </span>
+              onClick={() => {
+                navigate("/archived");
+              }}
+            >
+              <img src={archived} className="w-5 h-5 opacity-70" />
+              <span className="text-base font-semibold text-gray-300 truncate px-2">
+                Archived Notes
+              </span>
+            </div>
           </div>
         </div>
       </div>

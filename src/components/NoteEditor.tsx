@@ -7,6 +7,10 @@ import dropdownIcon from "../assets/dropdown.svg";
 import { deleteNote, restoreNoteById } from "../apis/api";
 import restoreIcon from "../assets/restore.svg";
 import bigDocIcon from "../assets/bigDoc.svg";
+import favoriteIcon from "../assets/fav.svg";
+import archivedIcon from "../assets/arch.svg";
+import deletedIcon from "../assets/trash.svg";
+import folderIcon from "../assets/Frame (1).svg";
 
 function NoteEditor() {
   const {
@@ -16,6 +20,9 @@ function NoteEditor() {
     fetchNoteById,
     setSelectedNote,
     refetchData,
+    refetchFavorites,
+    refetchArchived,
+    refetchDeleted,
   } = useAppContext();
 
   const { noteId } = useParams();
@@ -60,22 +67,7 @@ function NoteEditor() {
 
     await updateNote(selectedNote.id, { title, content });
     setIsEditing(false);
-  }, [selectedNote, updateNote, setIsEditing, title, content]);
-
-  // const handleArchiveToggle = async () => {
-  //     if (!selectedNote) return;
-  //     await toggleArchive(selectedNote);
-  //     setMenuOpen(false);
-  //     console.log(selectedNote);
-
-  //     if (!selectedNote.isArchived) {
-  //         if (selectedFolder) {
-  //             navigate(`/folder/${selectedFolder}/note/${selectedNote.id}`);
-  //         } else {
-  //             navigate('/');
-  //         }
-  //     }
-  // };
+  }, [selectedNote, updateNote, title, content]);
 
   useEffect(() => {
     if (!selectedNote || !isEditing) return;
@@ -158,9 +150,9 @@ function NoteEditor() {
   }
 
   return (
-    <div className="h-full w-4/5 bg-primary">
+    <div className="h-screen w-4/5 bg-primary overflow-hidden">
       <div className="flex justify-between items-center py-2 px-6 border-gray-700">
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 p-4 h-screen">
           <div className="flex justify-between">
             <input
               type="text"
@@ -179,9 +171,9 @@ function NoteEditor() {
             />
 
             {menuOpen && (
-              <div className="absolute right-10 top-20 w-48 bg-[#2c2c2c] rounded-md shadow-lg p-2">
+              <div className="absolute right-10 top-20 w-60 bg-[#2c2c2c] rounded-md shadow-lg px-1 py-2 flex flex-col gap-2">
                 <div
-                  className="flex items-center gap-3 px-4 py-2 text-white hover:bg-gray-700 cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-2 text-white hover:bg-secondary cursor-pointer"
                   onClick={() => {
                     if (selectedNote) {
                       const updatedFavoriteStatus = !selectedNote.isFavorite;
@@ -191,7 +183,10 @@ function NoteEditor() {
                       });
                       updateNote(selectedNote.id, {
                         isFavorite: updatedFavoriteStatus,
+                      }).then(() => {
+                        refetchFavorites();
                       });
+
                       if (selectedNote.isFavorite === true) {
                         navigate("/favorites");
                       }
@@ -200,13 +195,21 @@ function NoteEditor() {
                   }}
                 >
                   <span>
-                    {selectedNote?.isFavorite
-                      ? "Remove from favorites"
-                      : "Add to favorites"}
+                    {selectedNote?.isFavorite ? (
+                      <span className="flex gap-2">
+                        <img src={favoriteIcon} />
+                        <p>Remove From Favorites</p>
+                      </span>
+                    ) : (
+                      <span className="flex gap-2">
+                        <img src={favoriteIcon} />
+                        <p>Add to Favorites</p>
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div
-                  className="flex items-center gap-3 px-4 py-2 text-white hover:bg-gray-700 cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-2 text-white hover:bg-secondary cursor-pointer"
                   onClick={() => {
                     if (selectedNote) {
                       const updatedArchivedStatus = !selectedNote.isArchived;
@@ -216,10 +219,11 @@ function NoteEditor() {
                       });
                       updateNote(selectedNote.id, {
                         isArchived: updatedArchivedStatus,
-                      });
+                      }).then(() => refetchArchived());
                       if (selectedNote.isArchived === true) {
                         navigate("/archived");
                       }
+
                       //   navigate(`/folder/${selectedNote.folderId}`);
                       setSelectedNote(null);
                     }
@@ -227,14 +231,22 @@ function NoteEditor() {
                   }}
                 >
                   <span>
-                    {selectedNote?.isArchived
-                      ? "Remove from Archived"
-                      : "Add to Archived"}
+                    {selectedNote?.isArchived ? (
+                      <span className="flex gap-2">
+                        <img src={archivedIcon} />
+                        <p>Remove From Archived</p>
+                      </span>
+                    ) : (
+                      <span className="flex gap-2">
+                        <img src={archivedIcon} />
+                        <p>Add to Archived</p>
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="border-t border-gray-600 my-1"></div>
                 <div
-                  className="flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-gray-700 cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-secondary cursor-pointer"
                   onClick={() => {
                     if (selectedNote) {
                       setSelectedNote({
@@ -243,13 +255,16 @@ function NoteEditor() {
                       });
                       updateNote(selectedNote.id, {
                         deletedAt: String(Date.now()),
-                      });
+                      }).then(() => refetchDeleted());
                       deleteNote(selectedNote.id);
                     }
                     setMenuOpen(false);
                   }}
                 >
-                  <span>Delete</span>
+                  <span className="flex gap-2">
+                    <img src={deletedIcon} />
+                    <p>Delete</p>
+                  </span>
                 </div>
               </div>
             )}
@@ -265,7 +280,7 @@ function NoteEditor() {
             </div>
             <div className="border-b border-gray-700 my-2"></div>
             <div className="flex gap-6 py-1 relative">
-              <img src={calendarIcon} />
+              <img src={folderIcon} />
               <p className="text-sm">Folder</p>
               <div
                 className="text-sm cursor-pointer relative underline"
@@ -300,7 +315,7 @@ function NoteEditor() {
               setIsEditing(true);
             }}
             placeholder="Start writing your note here..."
-            className="w-full py-10 h-full min-h-[500px] bg-transparent focus:outline-none resize-none scrollbar-hide"
+            className="w-full py-10 h-full bg-transparent focus:outline-none resize-none scrollbar-hide"
           />
         </div>
       </div>

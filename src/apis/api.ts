@@ -12,7 +12,6 @@ export const getNotes = async (
   favorite?: boolean
 ): Promise<Note[]> => {
   try {
-    console.log(folderId);
     // const response = await axios.get<{ notes: Note[] }>(`${API_URL}/notes?limit=100`);
     const response = await axios.get<{ notes: Note[] }>(`${API_URL}/notes`, {
       params: {
@@ -23,6 +22,19 @@ export const getNotes = async (
         archived: archived,
         favorite: favorite,
       },
+    });
+
+    return response.data.notes;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getNotesByFolder = async (folderId: string): Promise<Note[]> => {
+  try {
+    const response = await axios.get<{ notes: Note[] }>(`${API_URL}/notes`, {
+      params: { folderId: folderId },
     });
 
     return response.data.notes;
